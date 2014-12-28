@@ -20,7 +20,12 @@ endfunction
 
 function! s:log.render()
   call agit#bufwin#move_to(self.name)
-  call s:fill_buffer(self.git.log(winwidth(0)))
+  if exists("g:agit_width")
+    let l:width = g:agit_width
+  else
+    let l:width = winwidth(0)
+  endif
+  call s:fill_buffer(self.git.log(l:width))
   call self.emmit()
 endfunction
 
