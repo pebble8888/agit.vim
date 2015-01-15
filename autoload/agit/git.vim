@@ -6,6 +6,7 @@ let s:sep = '__SEP__'
 
 let g:agit#git#staged_message = '+  Local changes checked in to index but not committed'
 let g:agit#git#unstaged_message = '=  Local uncommitted changes, not checked in to index'
+let g:agit#git#nextpage_message = '(too many logs)'
 
 let s:git = {
 \ 'git_dir' : '',
@@ -87,7 +88,7 @@ function! s:git.log(winwidth) dict
 endfunction
 
 function! s:git.filelog(winwidth)
-  let gitlog = agit#git#exec('log --all --graph --decorate=full --no-color --date=relative --format=format:"%d %s' . s:sep . '|>%ad<|' . s:sep . '{>%an<}' . s:sep . '[%h]" -- ' . self.abspath, self.git_dir)
+  let gitlog = agit#git#exec('log --all --graph --decorate=full --no-color --date=relative --format=format:"%d %s' . s:sep . '|>%ad<|' . s:sep . '{>%an<}' . s:sep . '[%h]" -- "' . self.abspath . '"', self.git_dir)
   " 16 means concealed symbol (4*2 + 2) + hash (7) - right eade margin (1)
   let max_width = a:winwidth + 16
   let gitlog = substitute(gitlog, '\<refs/heads/', '', 'g')
@@ -108,6 +109,8 @@ function! s:git.stat(hash) dict
     let stat = self.staged.stat
   elseif a:hash ==# 'unstaged'
     let stat = self.unstaged.stat
+  elseif a:hash ==# 'nextpage'
+    let stat = ''
   else
     let stat = agit#git#exec('show --oneline --stat --date=iso --pretty=format: '. a:hash, self.git_dir)
     let stat = substitute(stat, '^[\n\r]\+', '', '')
@@ -120,6 +123,8 @@ function! s:git.diff(hash) dict
     let diff = self.staged.diff
   elseif a:hash ==# 'unstaged'
     let diff = self.unstaged.diff
+  elseif a:hash ==# 'nextpage'
+    let diff = ''
   else
     let diff = agit#git#exec('show -p ' . a:hash, self.git_dir)
   endif
@@ -127,12 +132,16 @@ function! s:git.diff(hash) dict
 endfunction
 
 function! s:git.normalizepath(path)
-  let path = agit#git#exec('ls-tree --full-name --name-only HEAD ' . a:path, self.git_dir)
+  let path = agit#git#exec('ls-tree --full-name --name-only HEAD "' . a:path . '"', self.git_dir)
   return s:String.chomp(path)
 endfunction
 
 function! s:git.catfile(hash, path)
-  let catfile = agit#git#exec('cat-file -p ' . a:hash . ':' . a:path, self.git_dir)
+  if a:hash == 'nextpage'
+    let catfile = ''
+  else
+    let catfile = agit#git#exec('cat-file -p "' . a:hash . ':' . a:path . '"', self.git_dir)
+  endif
   return catfile
 endfunction
 
@@ -152,7 +161,7 @@ let s:last_status = 0
 let s:is_cp932 = &enc == 'cp932'
 function! agit#git#exec(command, git_dir, ...)
   let worktree_dir = matchstr(a:git_dir, '^.\+\ze\.git')
-  let cmd = 'git --no-pager --git-dir=' . a:git_dir . ' --work-tree=' . worktree_dir . ' ' . a:command
+  let cmd = 'git --no-pager --git-dir="' . a:git_dir . '" --work-tree="' . worktree_dir . '" ' . a:command
   if a:0 > 0 && a:1 == 1
     execute '!' . cmd
   else
@@ -189,8 +198,8 @@ function! s:git.fire_init()
   endfor
 endfunction
 
-function! s:git.sethash(hash)
-  if self.hash !=# a:hash
+function! s:git.sethash(hash, force)
+  if self.hash !=# a:hash || a:force
     let self.hash = a:hash
     for view in self.onhashchange
       call view.render(a:hash)
