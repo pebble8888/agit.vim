@@ -19,6 +19,7 @@
 <Plug>(agit-scrollup-diff)	agit.txt	/*<Plug>(agit-scrollup-diff)*
 <Plug>(agit-scrollup-stat)	agit.txt	/*<Plug>(agit-scrollup-stat)*
 <Plug>(agit-yank-hash)	agit.txt	/*<Plug>(agit-yank-hash)*
+agit-changelog	agit.txt	/*agit-changelog*
 agit-commands	agit.txt	/*agit-commands*
 agit-contents	agit.txt	/*agit-contents*
 agit-default-key-mappings	agit.txt	/*agit-default-key-mappings*
@@ -40,4 +41,3 @@ g:agit_enable_auto_show_commit	agit.txt	/*g:agit_enable_auto_show_commit*
 g:agit_max_log_lines	agit.txt	/*g:agit_max_log_lines*
 g:agit_no_default_mappings	agit.txt	/*g:agit_no_default_mappings*
 g:agit_skip_empty_line	agit.txt	/*g:agit_skip_empty_line*
-lexima-changelog	agit.txt	/*lexima-changelog*
