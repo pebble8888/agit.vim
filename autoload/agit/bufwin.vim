@@ -1,5 +1,8 @@
 function! agit#bufwin#agit_tabnew(git)
   tabnew
+  if g:agit_tabonly
+    tabonly
+  endif
   for v in a:git.views
     call s:run_layout(get(v, 'layout', ''))
     let w:view = agit#view#{v.name}#new(a:git)
