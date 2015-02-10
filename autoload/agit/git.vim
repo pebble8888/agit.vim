@@ -1,5 +1,6 @@
 let s:P = agit#vital().P
 let s:String = agit#vital().String
+let s:List = agit#vital().List
 let s:Process = agit#vital().Process
 
 let s:sep = '__SEP__'
@@ -34,7 +35,11 @@ function! s:git.log(winwidth) dict
   let aligned_log = agit#aligner#align(log_lines, max_width)
 
   let head_hash = agit#git#exec('rev-parse --short HEAD', self.git_dir)
-  let head_index = s:find_index(aligned_log, 'match(v:val, "[' . head_hash . ']") >= 0')
+  if g:agit_localchanges_always_on_top
+    let head_index = 0
+  else
+    let head_index = s:List.find_index(aligned_log, 'match(v:val, "\\[' . s:String.chomp(head_hash) . '\\]") >= 0')
+  endif
 
   let self.staged = {'stat' : '', 'diff' : ''}
   let self.unstaged = {'stat' : '', 'diff' : ''}
@@ -112,7 +117,8 @@ function! s:git.stat(hash) dict
   elseif a:hash ==# 'nextpage'
     let stat = ''
   else
-    let stat = agit#git#exec('show --oneline --stat --date=iso --pretty=format: '. a:hash, self.git_dir)
+    let ignoresp = g:agit_ignore_spaces ? '-w' : ''
+    let stat = agit#git#exec('show --oneline --stat --date=iso --pretty=format: ' . ignoresp . ' ' . a:hash, self.git_dir)
     let stat = substitute(stat, '^[\n\r]\+', '', '')
   endif
   return stat
@@ -126,13 +132,14 @@ function! s:git.diff(hash) dict
   elseif a:hash ==# 'nextpage'
     let diff = ''
   else
-    let diff = agit#git#exec('show -p ' . a:hash, self.git_dir)
+    let ignoresp = g:agit_ignore_spaces ? '-w' : ''
+    let diff = agit#git#exec('show -p '. ignoresp .' ' . a:hash, self.git_dir)
   endif
   return diff
 endfunction
 
 function! s:git.normalizepath(path)
-  let path = agit#git#exec('ls-tree --full-name --name-only HEAD "' . a:path . '"', self.git_dir)
+  let path = agit#git#exec('ls-tree --full-name --name-only HEAD ''' . a:path . '''', self.git_dir)
   return s:String.chomp(path)
 endfunction
 
@@ -181,15 +188,6 @@ endfunction
 
 function! agit#git#get_last_status()
   return s:last_status
-endfunction
-
-function! s:find_index(xs, expr)
-  for i in range(0, len(a:xs) - 1)
-    if eval(substitute(a:expr, 'v:val', string(a:xs[i]), 'g'))
-      return i
-    endif
-  endfor
-  return -1
 endfunction
 
 function! s:git.fire_init()

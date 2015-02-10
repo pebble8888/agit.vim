@@ -241,6 +241,16 @@ g:agit_skip_empty_line				*g:agit_skip_empty_line*
 	|agit-log| buffer.
 	default value: 1
 
+g:agit_localchanges_always_on_top		*g:agit_skip_empty_line*
+	If it is non-zero, a message line of uncommitted changes is placed
+	always on the top of |agit-log|.
+	default value: 1
+
+g:agit_ignore_spaces				*g:agit_ignore_spaces*
+	If it is non-zero, Agit ignore whitespace changes as showing
+	|agit-diff| and |agit-stat| buffer.
+	default value: 1
+
 
 ==============================================================================
 TODO						*agit-todo*
